@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, Button, Platform, Alert } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
@@ -11,6 +11,7 @@ import * as productsActions from "../../store/actions/products";
 const UserProductsScreen = (props) => {
   const userProducts = useSelector((state) => state.products.userProducts);
   const dispatch = useDispatch();
+  const [error, setError] = useState();
 
   const editProductHandler = (id) => {
     props.navigation.navigate("EditProduct", { productId: id });
@@ -23,11 +24,21 @@ const UserProductsScreen = (props) => {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          dispatch(productsActions.deleteProduct(id));
+          try {
+            dispatch(productsActions.deleteProduct(id));
+          } catch (err) {
+            setError(err.message);
+          }
         },
       },
     ]);
   };
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert("An error occurred!", error, [{ text: "okay" }]);
+    }
+  }, [error]);
 
   return (
     <FlatList

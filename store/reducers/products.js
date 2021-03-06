@@ -43,6 +43,7 @@ export default (state = initialState, action) => {
         userProducts: state.userProducts.concat(newProduct),
       };
     case UPDATE_PRODUCT:
+      console.log(action.productData);
       const productIndex = state.userProducts.findIndex(
         (product) => product.id === action.pid
       );

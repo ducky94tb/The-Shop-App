@@ -8,7 +8,7 @@ const inputReducer = (state, action) => {
   switch (action.type) {
     case INPUT_CHANGE:
       return {
-        ...state,
+        touched: true,
         value: action.value,
         isValid: action.isValid,
       };

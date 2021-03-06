@@ -21,6 +21,7 @@ const ProductsOverviewScreen = (props) => {
   const products = useSelector((state) => state.products.availableProducts);
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
 
   const selectItemHandler = (id, title) => {
@@ -32,19 +33,20 @@ const ProductsOverviewScreen = (props) => {
 
   const loadProducts = useCallback(async () => {
     setError(null);
-    setIsLoading(true);
+    setIsRefreshing(true);
     try {
       await dispatch(productActions.fetchProducts());
     } catch (err) {
       console.log(err);
       setError(err.message);
     }
-    setIsLoading(false);
-  }, [dispatch, setIsLoading, setError]);
+    setIsRefreshing(false);
+  }, [dispatch, setIsRefreshing, setError]);
 
   useEffect(() => {
-    loadProducts();
-  }, [dispatch, loadProducts]);
+    setIsLoading(true);
+    loadProducts().then(setIsLoading(false));
+  }, [dispatch, loadProducts, setIsLoading]);
 
   useEffect(() => {
     const willFocusSub = props.navigation.addListener(
@@ -83,6 +85,8 @@ const ProductsOverviewScreen = (props) => {
 
   return (
     <FlatList
+      onRefresh={loadProducts}
+      refreshing={isRefreshing}
       data={products}
       keyExtractor={(item) => item.id}
       renderItem={(itemData) => (

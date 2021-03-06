@@ -95,7 +95,6 @@ export const updateProduct = (id, title, description, imageUrl) => {
     );
 
     if (!response.ok) {
-      console.log("Something went wrong");
       throw new Error("Something went wrong!");
     }
     dispatch({
@@ -114,13 +113,14 @@ export const deleteProduct = (productId) => {
   return async (dispatch) => {
     try {
       const response = await fetch(
-        `https://fir-demo-e7bb2-default-rtdb.firebaseio.com/products/${id}.json`,
+        `https://fir-demo-e7bb2-default-rtdb.firebaseio.com/products/${productId}.json`,
         {
           method: "DELETE",
         }
       );
+      const resData = await response.json();
+      console.log(resData);
       if (!response.ok) {
-        console.log("Something went wrong!");
         throw new Error("Something went wrong!");
       }
       dispatch({ type: DELETE_PRODUCT, pid: productId });

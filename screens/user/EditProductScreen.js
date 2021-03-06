@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useReducer } from "react";
+import React, { useEffect, useCallback, useReducer, useState } from "react";
 import {
   View,
   ScrollView,
@@ -20,18 +20,18 @@ const formReducer = (state, action) => {
   if (action.type === FORM_INPUT_UPDATE) {
     const updatedValues = {
       ...state.inputValues,
-      [action.input]: action.value,
+      [action.id]: action.value,
     };
     const updatedValidities = {
       ...state.inputValidities,
-      [action.input]: action.isValid,
+      [action.id]: action.isValid,
     };
-    let updatedFormIsValid = true;
+    let isValid = true;
     for (const key in updatedValidities) {
-      updatedFormIsValid = updatedFormIsValid && updatedValidities[key];
+      isValid &= updatedValidities[key];
     }
-    return {
-      formIsValid: updatedFormIsValid,
+    state = {
+      formIsValid: isValid,
       inputValidities: updatedValidities,
       inputValues: updatedValues,
     };
@@ -44,6 +44,10 @@ const EditProductScreen = (props) => {
   const editedProduct = useSelector((state) =>
     state.products.userProducts.find((prod) => prod.id === prodId)
   );
+  const [error, setError] = useState();
+  useEffect(() => {
+    if (error) Alert.alert("An error occurred!", error, [{ text: "Okay" }]);
+  }, [error]);
   const dispatch = useDispatch();
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
@@ -69,26 +73,30 @@ const EditProductScreen = (props) => {
       ]);
       return;
     }
-    if (editedProduct) {
-      dispatch(
-        productsActions.updateProduct(
-          prodId,
-          formState.inputValues.title,
-          formState.inputValues.description,
-          formState.inputValues.imageUrl
-        )
-      );
-    } else {
-      dispatch(
-        productsActions.createProduct(
-          formState.inputValues.title,
-          formState.inputValues.description,
-          formState.inputValues.imageUrl,
-          +formState.inputValues.price
-        )
-      );
+    try {
+      if (editedProduct) {
+        dispatch(
+          productsActions.updateProduct(
+            prodId,
+            formState.inputValues.title,
+            formState.inputValues.description,
+            formState.inputValues.imageUrl
+          )
+        );
+      } else {
+        dispatch(
+          productsActions.createProduct(
+            formState.inputValues.title,
+            formState.inputValues.description,
+            formState.inputValues.imageUrl,
+            +formState.inputValues.price
+          )
+        );
+      }
+      props.navigation.goBack();
+    } catch (err) {
+      setError(err.message);
     }
-    props.navigation.goBack();
   }, [dispatch, prodId, formState]);
 
   useEffect(() => {
@@ -96,12 +104,12 @@ const EditProductScreen = (props) => {
   }, [submitHandler]);
 
   const inputChangeHandler = useCallback(
-    (inputIdentifier, inputValue, inputValidity) => {
+    (id, value, isValid) => {
       dispatchFormState({
         type: FORM_INPUT_UPDATE,
-        value: inputValue,
-        isValid: inputValidity,
-        input: inputIdentifier,
+        value: value,
+        isValid: isValid,
+        id: id,
       });
     },
     [dispatchFormState]
